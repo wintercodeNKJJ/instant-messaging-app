@@ -42,4 +42,20 @@ public class Message {
   public Long getId() {
     return id;
   }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public void setReceiverId(Long receiverId) {
+    this.receiverId = receiverId;
+  }
+
+  public void setSenderId(Long senderId) {
+    this.senderId = senderId;
+  }
+
+  public void setTimestamp(LocalDateTime timestamp) {
+    this.timestamp = timestamp;
+  }
 }

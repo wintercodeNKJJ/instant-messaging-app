@@ -17,7 +17,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
   void deleteById(Long id);
 
   @SuppressWarnings("unchecked")
-  @Override
   Message save(Message message);
 
   List<Message> findAll();

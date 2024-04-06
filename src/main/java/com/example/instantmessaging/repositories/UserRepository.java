@@ -12,6 +12,8 @@ import com.example.instantmessaging.models.User;
 public interface UserRepository extends JpaRepository<User, Long> {
   User findByUsername(String username);
 
+  User findByVerificationCode(String verificationCode);
+
   User findByEmail(String email);
 
   Optional<User> findById(Long id);
@@ -19,7 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
   void deleteById(Long id);
 
   @SuppressWarnings("unchecked")
-  @Override
   User save(User user);
 
   List<User> findAll();
