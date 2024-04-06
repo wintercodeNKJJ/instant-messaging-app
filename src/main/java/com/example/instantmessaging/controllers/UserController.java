@@ -46,6 +46,7 @@ public class UserController {
 
   @PostMapping("/register")
   public ResponseEntity<User> registerUser(@RequestBody User user) {
+    System.out.println("Hello");
     if (userRepository.findByUsername(user.getUsername()) != null) {
       throw new RuntimeErrorException(null, "Can not Register user");
     }

@@ -15,24 +15,20 @@ public class User {
   private Long id;
 
   @NotBlank
-  @Size(min = 0, max = 20)
   private String username;
 
   @NotBlank
-  @Size(min = 5, max = 20)
   private String password;
 
   @NotBlank
   @Email
-  @Size(min = 0, max = 20)
   private String email;
-
-  @Size(min = 0)
   private String profilepicture;
   private Boolean verified;
   private String verificationCode;
 
   User(String username, String password, String email, String profilepicture) {
+    System.out.println(username + " " + password + " " + profilepicture + " " + email);
     this.username = username;
     this.password = password;
     this.email = email;
