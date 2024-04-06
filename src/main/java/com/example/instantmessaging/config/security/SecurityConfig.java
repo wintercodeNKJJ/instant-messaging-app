@@ -1,8 +1,7 @@
-package com.example.instantmessaging.config;
+package com.example.instantmessaging.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -55,13 +54,14 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(
-        authorizeRequests -> authorizeRequests.requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
-            .requestMatchers("/docs", "/swagger-ui/**", "/api/users/login", "/api/users/**", "/v3/**").permitAll()
+        authorizeRequests -> authorizeRequests
+            .requestMatchers("/docs", "/swagger-ui/**", "/api/users/login", "/api/users/**", "/v3/**")
+            .permitAll()
             .anyRequest().authenticated())
         .formLogin(formLogin -> formLogin
             .loginPage("/api/users/login")
         // .defaultSuccessUrl("/rooms")
-        ).exceptionHandling(exceptionHandling -> exceptionHandling
+        ).csrf(csrf -> csrf.disable()).exceptionHandling(exceptionHandling -> exceptionHandling
             .accessDeniedPage("/access-denied"));
     return http.build();
   }

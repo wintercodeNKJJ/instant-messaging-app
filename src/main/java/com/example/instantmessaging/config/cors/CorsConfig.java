@@ -1,4 +1,4 @@
-package com.example.instantmessaging.config;
+package com.example.instantmessaging.config.cors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

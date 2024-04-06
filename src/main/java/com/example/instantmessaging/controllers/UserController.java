@@ -1,9 +1,5 @@
 package com.example.instantmessaging.controllers;
 
-import java.util.UUID;
-
-import javax.management.RuntimeErrorException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +15,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.instantmessaging.config.SecurityConfig;
 import com.example.instantmessaging.models.User;
-import com.example.instantmessaging.repositories.UserRepository;
 import com.example.instantmessaging.services.EmailSender;
+import com.example.instantmessaging.services.dataservice.UserDataService;
 
 import ch.qos.logback.core.boolex.EvaluationException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,30 +31,16 @@ import jakarta.persistence.EntityNotFoundException;
 public class UserController {
 
   @Autowired
-  private UserRepository userRepository;
+  private UserDataService userDataService;
 
   @Autowired
   private EmailSender emailSender;
 
-  @Autowired
-  private SecurityConfig passwordEncoder = new SecurityConfig();
-
   @PostMapping("/register")
-  public ResponseEntity<User> registerUser(@RequestBody User user) {
-    System.out.println("Hello");
-    if (userRepository.findByUsername(user.getUsername()) != null) {
-      throw new RuntimeErrorException(null, "Can not Register user");
-    }
-    if (userRepository.findByEmail(user.getEmail()) != null) {
-      throw new RuntimeErrorException(null, "Can not Register user");
-    }
+  public ResponseEntity<User> registerUser(@RequestBody User user) throws RuntimeException {
 
-    user.setPassword(passwordEncoder.passwordEncoder().encode(user.getPassword()));
-
-    user.setVerified(false);
-    user.setVerificationCode(UUID.randomUUID().toString());
-    User newUser = userRepository.save(user);
-
+    userDataService.isUserInDataBase(user.getUsername(), user.getEmail());
+    User newUser = userDataService.createNewUserDate(user);
     emailSender.sendEmailVerification(newUser);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
@@ -67,74 +48,43 @@ public class UserController {
 
   @PostMapping("/login")
   public ResponseEntity<String> loginUser(@RequestBody User loginUser) throws EvaluationException {
-    User user = userRepository.findByUsername(loginUser.getUsername());
 
-    if (user == null) {
-      throw new EvaluationException("Invalid username or password");
-    }
-
-    if (passwordEncoder.passwordEncoder().matches(loginUser.getPassword(), user.getPassword())) {
-      throw new EvaluationException("Invalid username or password");
-    }
-
-    if (!user.isVerified()) {
-      throw new EvaluationException("Account not verified");
-    }
+    User user = userDataService.isRegistered(loginUser);
+    userDataService.checkPass(loginUser, user);
+    userDataService.isVerified(user);
 
     return ResponseEntity.ok("Login successfull");
   }
 
   @GetMapping("/verify/{verificationCode}")
   public ResponseEntity<String> verifyEmail(@PathVariable String verificationCode) throws EvaluationException {
-    User user = userRepository.findByVerificationCode(verificationCode);
-
-    if (user == null) {
-      throw new EvaluationException("Invalid verification code");
-    }
-
-    user.setVerified(true);
-    userRepository.save(user);
-
+    userDataService.verifyUser(verificationCode);
     return ResponseEntity.ok("Email verified successfully");
   }
 
   @SecurityRequirement(name = "bearerAuth")
   @PutMapping("/{id}")
   public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatUser) {
-    User existingUser = userRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
-
-    if (updatUser.getPassword() != null && !updatUser.getPassword().isEmpty()) {
-      existingUser.setPassword(passwordEncoder.passwordEncoder().encode(updatUser.getPassword()));
-    }
-
-    existingUser.setPassword(updatUser.getPassword());
-    existingUser.setEmail(updatUser.getEmail());
-
-    User savedUser = userRepository.save(existingUser);
+    User savedUser = userDataService.updateUser(id, updatUser);
     return ResponseEntity.ok(savedUser);
   }
 
   @SecurityRequirement(name = "bearerAuth")
   @GetMapping
   public ResponseEntity<Iterable<User>> getAllUsers() {
-    Iterable<User> users = userRepository.findAll();
-    return ResponseEntity.ok(users);
+    return ResponseEntity.ok(userDataService.getAllUsers());
   }
 
   @SecurityRequirement(name = "bearerAuth")
   @GetMapping("/{id}")
   public ResponseEntity<User> getUserById(@PathVariable Long id) {
-    User user = userRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
-
-    return ResponseEntity.ok(user);
+    return ResponseEntity.ok(userDataService.getUserById(id));
   }
 
   @SecurityRequirement(name = "bearerAuth")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-    userRepository.deleteById(id);
+    userDataService.deleteUserById(id);
     return ResponseEntity.noContent().build();
   }
 

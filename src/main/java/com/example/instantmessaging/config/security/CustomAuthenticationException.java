@@ -1,4 +1,4 @@
-package com.example.instantmessaging.config;
+package com.example.instantmessaging.config.security;
 
 import org.springframework.security.core.AuthenticationException;
 

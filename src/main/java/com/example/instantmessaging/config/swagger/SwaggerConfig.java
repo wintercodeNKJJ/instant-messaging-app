@@ -1,4 +1,4 @@
-package com.example.instantmessaging.config;
+package com.example.instantmessaging.config.swagger;
 
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
