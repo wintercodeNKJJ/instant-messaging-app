@@ -54,14 +54,16 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-        .requestMatchers("/public/**").permitAll() // Public endpoints
+        .requestMatchers("/**", "/api/**", "/api/docs").permitAll()
         .anyRequest().authenticated())
         .formLogin(formLogin -> formLogin
-            .loginPage("/login")
-            .defaultSuccessUrl("/rooms"))
+            .loginPage("/api/login")
+        // .defaultSuccessUrl("/rooms")
+        )
         .logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login"))
+            .logoutUrl("/api/logout")
+        // .logoutSuccessUrl("/login")
+        )
         .exceptionHandling(exceptionHandling -> exceptionHandling
             .accessDeniedPage("/access-denied"));
     return http.build();

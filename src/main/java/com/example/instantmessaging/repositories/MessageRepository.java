@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.example.instantmessaging.models.Message;
 
+@Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
   List<Message> findBySenderId(Long senderId);
 

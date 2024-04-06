@@ -16,14 +16,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.instantmessaging.config.SecurityConfig;
 import com.example.instantmessaging.models.User;
 import com.example.instantmessaging.repositories.UserRepository;
 import com.example.instantmessaging.services.EmailSender;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/api/users")
+@Api(tags = "User Management")
 public class UserController {
 
   @Autowired
@@ -33,9 +37,10 @@ public class UserController {
   private EmailSender emailSender;
 
   @Autowired
-  private BCryptPasswordEncoder passwordEncoder;
+  private SecurityConfig passwordEncoder = new SecurityConfig();
 
   @PostMapping("/register")
+  @ApiOperation("Register a new user")
   public ResponseEntity<User> registerUser(@RequestBody User user) {
     if (userRepository.findByUsername(user.getUsername()) != null) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -44,7 +49,7 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    user.setPassword(passwordEncoder.passwordEncoder().encode(user.getPassword()));
 
     user.setVerified(false);
     user.setVerificationCode(UUID.randomUUID().toString());
@@ -56,6 +61,7 @@ public class UserController {
   }
 
   @PostMapping("/login")
+  @ApiOperation("Login a user")
   public ResponseEntity<String> loginUser(@RequestBody User loginUser) {
     User user = userRepository.findByUsername(loginUser.getUsername());
 
@@ -63,7 +69,7 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
     }
 
-    if (passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
+    if (passwordEncoder.passwordEncoder().matches(loginUser.getPassword(), user.getPassword())) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
     }
 
@@ -75,6 +81,7 @@ public class UserController {
   }
 
   @GetMapping("/verify/{verificationCode}")
+  @ApiOperation("Verify a new user")
   public ResponseEntity<String> verifyEmail(@PathVariable String verificationCode) {
     User user = userRepository.findByVerificationCode(verificationCode);
 
@@ -89,12 +96,13 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
+  @ApiOperation("Update a user by ID")
   public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatUser) {
     User existingUser = userRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
 
     if (updatUser.getPassword() != null && !updatUser.getPassword().isEmpty()) {
-      existingUser.setPassword(passwordEncoder.encode(updatUser.getPassword()));
+      existingUser.setPassword(passwordEncoder.passwordEncoder().encode(updatUser.getPassword()));
     }
 
     existingUser.setPassword(updatUser.getPassword());
@@ -105,12 +113,14 @@ public class UserController {
   }
 
   @GetMapping
+  @ApiOperation("Get all users")
   public ResponseEntity<Iterable<User>> getAllUsers() {
     Iterable<User> users = userRepository.findAll();
     return ResponseEntity.ok(users);
   }
 
   @GetMapping("/{id}")
+  @ApiOperation("Get a user by ID")
   public ResponseEntity<User> getUserById(@PathVariable Long id) {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
@@ -119,6 +129,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{id}")
+  @ApiOperation("Delete a user by ID")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
     userRepository.deleteById(id);
     return ResponseEntity.noContent().build();

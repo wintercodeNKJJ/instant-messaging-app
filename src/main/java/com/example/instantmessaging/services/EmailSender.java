@@ -2,9 +2,11 @@ package com.example.instantmessaging.services;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Component;
 
 import com.example.instantmessaging.models.User;
 
+@Component
 public class EmailSender {
   private JavaMailSender javaMailSender;
 
