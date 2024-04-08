@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.instantmessaging.models.Room;
 
+@SuppressWarnings("null")
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
   Room findByRoomName(String name);

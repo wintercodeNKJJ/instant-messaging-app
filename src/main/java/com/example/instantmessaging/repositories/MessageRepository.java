@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.instantmessaging.models.Message;
 
+@SuppressWarnings("null")
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
   List<Message> findBySenderId(Long senderId);

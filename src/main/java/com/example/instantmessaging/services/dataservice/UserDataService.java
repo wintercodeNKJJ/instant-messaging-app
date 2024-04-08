@@ -16,7 +16,7 @@ import jakarta.persistence.EntityNotFoundException;
 @Service
 public class UserDataService {
   @Autowired
-  private UserRepository userRepository;
+  public UserRepository userRepository;
 
   @Autowired
   private SecurityConfig passwordEncoder = new SecurityConfig();
@@ -40,27 +40,28 @@ public class UserDataService {
     return user;
   }
 
-  public User isRegistered(User loginUser) throws EvaluationException {
-    User user = userRepository.findByUsername(loginUser.getUsername());
+  // public User isRegistered(User loginUser) throws EvaluationException {
+  // User user = userRepository.findByUsername(loginUser.getUsername());
 
-    if (user == null) {
-      throw new EvaluationException("Invalid username or password");
-    }
+  // if (user == null) {
+  // throw new EvaluationException("Invalid username or password");
+  // }
 
-    return user;
-  }
+  // return user;
+  // }
 
-  public void checkPass(User loginUser, User user) throws EvaluationException {
-    if (passwordEncoder.passwordEncoder().matches(loginUser.getPassword(), user.getPassword())) {
-      throw new EvaluationException("Invalid username or password");
-    }
-  }
+  // public void checkPass(User loginUser, User user) throws EvaluationException {
+  // if (!passwordEncoder.passwordEncoder().matches(loginUser.getPassword(),
+  // user.getPassword())) {
+  // throw new EvaluationException("Invalid username or password");
+  // }
+  // }
 
-  public void isVerified(User user) throws EvaluationException {
-    if (!user.isVerified()) {
-      throw new EvaluationException("Account not verified");
-    }
-  }
+  // public void isVerified(User user) throws EvaluationException {
+  // if (!user.isVerified()) {
+  // throw new EvaluationException("Account not verified");
+  // }
+  // }
 
   public void verifyUser(String verificationCode) throws EvaluationException {
     User user = userRepository.findByVerificationCode(verificationCode);
@@ -96,6 +97,11 @@ public class UserDataService {
   public User getUserById(Long id) throws EntityNotFoundException {
     return userRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+  }
+
+  @Cacheable("userById")
+  public User findByUsername(String username) throws EntityNotFoundException {
+    return userRepository.findByUsername(username);
   }
 
   public void deleteUserById(Long id) {

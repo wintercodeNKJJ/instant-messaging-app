@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@SuppressWarnings("null")
 @Configuration
 public class LoggerFilter extends OncePerRequestFilter {
   private final Logger logger = LoggerFactory.getLogger(getClass());

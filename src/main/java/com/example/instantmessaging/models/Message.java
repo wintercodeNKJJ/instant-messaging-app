@@ -7,7 +7,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class Message {
   @Id
@@ -29,41 +33,5 @@ public class Message {
     this.receiverId = receiverId;
     this.content = content;
     this.timestamp = LocalDateTime.now();
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public Long getReceiverId() {
-    return receiverId;
-  }
-
-  public Long getSenderId() {
-    return senderId;
-  }
-
-  public LocalDateTime getTimestamp() {
-    return timestamp;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
-  }
-
-  public void setReceiverId(Long receiverId) {
-    this.receiverId = receiverId;
-  }
-
-  public void setSenderId(Long senderId) {
-    this.senderId = senderId;
-  }
-
-  public void setTimestamp(LocalDateTime timestamp) {
-    this.timestamp = timestamp;
   }
 }

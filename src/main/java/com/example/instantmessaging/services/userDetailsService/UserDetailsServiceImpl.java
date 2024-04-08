@@ -1,25 +1,33 @@
-package com.example.instantmessaging.services;
+package com.example.instantmessaging.services.userDetailsService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import com.example.instantmessaging.models.User;
 import com.example.instantmessaging.repositories.UserRepository;
 
-public class CustomUserDetailsService implements UserDetailsService {
+@Component
+public class UserDetailsServiceImpl implements UserDetailsService {
 
   @Autowired
   private UserRepository userRepository;
 
+  private static final Logger logger = LoggerFactory.getLogger(UserDetailsService.class);
+
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    logger.debug("Entring in loadUserbyUsername Method...");
     User user = userRepository.findByUsername(username);
     if (user == null) {
-      throw new UsernameNotFoundException("User not found with username: " + username);
+      logger.error("Username not found: " + username);
+      throw new UsernameNotFoundException("could not find user...!!");
     }
-
-    return (UserDetails) user;
+    logger.info("User Authenticated Successfully...!!");
+    return new CustomUserDetails(user);
   }
 }

@@ -3,6 +3,10 @@ package com.example.instantmessaging.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,13 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.example.instantmessaging.models.User;
-import com.example.instantmessaging.services.EmailSender;
+import com.example.instantmessaging.models.AuthRequestsDTO;
+import com.example.instantmessaging.models.AuthResponse;
+import com.example.instantmessaging.services.RabbitMQ.RabbitMQSender;
 import com.example.instantmessaging.services.dataservice.UserDataService;
+import com.example.instantmessaging.utils.JwtTokenUtil;
 
 import ch.qos.logback.core.boolex.EvaluationException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RestControllerAdvice
@@ -31,29 +40,57 @@ import jakarta.persistence.EntityNotFoundException;
 public class UserController {
 
   @Autowired
+  private RabbitMQSender rabbitMQSender;
+
+  @Autowired
   private UserDataService userDataService;
 
   @Autowired
-  private EmailSender emailSender;
+  public AuthenticationManager authenticationManager;
+
+  @Autowired
+  private JwtTokenUtil jwtTokenUtil;
 
   @PostMapping("/register")
   public ResponseEntity<User> registerUser(@RequestBody User user) throws RuntimeException {
 
     userDataService.isUserInDataBase(user.getUsername(), user.getEmail());
     User newUser = userDataService.createNewUserDate(user);
-    emailSender.sendEmailVerification(newUser);
+
+    rabbitMQSender.send(newUser);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<String> loginUser(@RequestBody User loginUser) throws EvaluationException {
+  @PostMapping("/signin")
+  public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequestsDTO authRequestsDTO,
+      HttpServletResponse response)
+      throws UsernameNotFoundException {
 
-    User user = userDataService.isRegistered(loginUser);
-    userDataService.checkPass(loginUser, user);
-    userDataService.isVerified(user);
+    Authentication authentication = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(authRequestsDTO.getUsername(), authRequestsDTO.getPassword()));
 
-    return ResponseEntity.ok("Login successfull");
+    if (authentication.isAuthenticated()) {
+      User user = userDataService.findByUsername(authRequestsDTO.getUsername());
+
+      String token = jwtTokenUtil.generateToken(user.getUsername());
+
+      Cookie cookie = new Cookie("token", token);
+      cookie.setHttpOnly(true);
+      cookie.setMaxAge(jwtTokenUtil.expiration);
+      cookie.setPath("/");
+      response.addCookie(cookie);
+
+      return ResponseEntity.ok(new AuthResponse(user, token));
+    } else {
+      throw new UsernameNotFoundException("Invalid request...!!");
+    }
+
+  }
+
+  @GetMapping("/login")
+  public ResponseEntity<String> loginMessage() {
+    return ResponseEntity.ok("login first thing first");
   }
 
   @GetMapping("/verify/{verificationCode}")
@@ -76,7 +113,7 @@ public class UserController {
   }
 
   @SecurityRequirement(name = "bearerAuth")
-  @GetMapping("/{id}")
+  @GetMapping("/user/{id}")
   public ResponseEntity<User> getUserById(@PathVariable Long id) {
     return ResponseEntity.ok(userDataService.getUserById(id));
   }

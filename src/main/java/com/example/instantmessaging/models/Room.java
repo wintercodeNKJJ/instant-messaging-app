@@ -6,7 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class Room {
   @Id
@@ -28,30 +32,6 @@ public class Room {
 
   Room(String roomName, List<Long> userIds) {
     this.roomName = roomName;
-    this.userIds = userIds;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public String getRoomName() {
-    return roomName;
-  }
-
-  public List<Long> getUserIds() {
-    return userIds;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public void setRoomName(String roomName) {
-    this.roomName = roomName;
-  }
-
-  public void setUserIds(List<Long> userIds) {
     this.userIds = userIds;
   }
 
