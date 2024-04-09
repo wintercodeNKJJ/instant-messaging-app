@@ -126,6 +126,24 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
     </dependency>
+
+		<!-- web socket -->
+		<dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
