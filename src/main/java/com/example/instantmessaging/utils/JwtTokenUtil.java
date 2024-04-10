@@ -60,7 +60,13 @@ public class JwtTokenUtil {
   }
 
   public Boolean isTokenExpired(String token) {
-    return extractExpiration(token).before(new Date());
+    try {
+      Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
+      return false;
+    } catch (Exception e) {
+      return true;
+    }
+    // return extractExpiration(token).before(new Date());
   }
 
   public Boolean validateToken(String token, UserDetails userDetails) {
