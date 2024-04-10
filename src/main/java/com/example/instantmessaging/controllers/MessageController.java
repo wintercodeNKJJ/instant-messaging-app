@@ -1,29 +1,27 @@
 package com.example.instantmessaging.controllers;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-import com.example.instantmessaging.models.Message;
+import com.example.instantmessaging.models.ChatMessage;
 
 @Controller
 public class MessageController {
 
-  private SimpMessagingTemplate template;
-
-  @MessageMapping("/greeting")
-  public String handle(String greeting) {
-    return "[" + new Date().getTime() + ": " + greeting;
+  @MessageMapping("/chat.sendMessage")
+  @SendTo("/topic/public")
+  public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+    return chatMessage;
   }
 
-  @MessageMapping("/chat")
-  @SendTo("/topic/messages")
-  public void send(Message message) throws Exception {
-    String time = new SimpleDateFormat("HH:mm").format(new Date());
-    this.template.convertAndSend("/topic/messages", message + time);
+  @SuppressWarnings("null")
+  @MessageMapping("/chat.addUser")
+  @SendTo("/topic/public")
+  public ChatMessage addUser(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+    headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+    return chatMessage;
   }
 }

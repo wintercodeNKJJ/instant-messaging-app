@@ -32,7 +32,7 @@ public class JwtTokenUtil {
 
   private String createToken(Map<String, Object> claims, String username) {
     return Jwts.builder().setClaims(claims).setSubject(username).setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 1))
+        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
         .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
   }
 
@@ -65,7 +65,7 @@ public class JwtTokenUtil {
 
   public Boolean validateToken(String token, UserDetails userDetails) {
     final String username = extractUserName(token);
-    return (username.equals(userDetails.getUsername()) && isTokenExpired(token));
+    return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
   }
 
   private Key getSignKey() {

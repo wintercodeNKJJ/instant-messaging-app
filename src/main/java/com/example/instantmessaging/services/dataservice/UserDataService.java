@@ -2,11 +2,14 @@ package com.example.instantmessaging.services.dataservice;
 
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.example.instantmessaging.config.security.SecurityConfig;
+import com.example.instantmessaging.models.RegisterRequestDTO;
 import com.example.instantmessaging.models.User;
 import com.example.instantmessaging.repositories.UserRepository;
 
@@ -17,6 +20,8 @@ import jakarta.persistence.EntityNotFoundException;
 public class UserDataService {
   @Autowired
   public UserRepository userRepository;
+
+  private static Logger logger = LogManager.getLogger(UserDataService.class.toString());
 
   @Autowired
   private SecurityConfig passwordEncoder = new SecurityConfig();
@@ -30,7 +35,12 @@ public class UserDataService {
     }
   }
 
-  public User createNewUserDate(User user) {
+  public User createNewUserDate(RegisterRequestDTO registerUser) {
+    User user = new User();
+    user.setUsername(registerUser.getUsername());
+    user.setPassword(registerUser.getPassword());
+
+    logger.trace(user.getPassword());
     user.setPassword(passwordEncoder.passwordEncoder().encode(user.getPassword()));
 
     user.setVerified(false);

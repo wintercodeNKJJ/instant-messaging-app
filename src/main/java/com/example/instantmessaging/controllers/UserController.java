@@ -1,8 +1,11 @@
 package com.example.instantmessaging.controllers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.example.instantmessaging.models.User;
 import com.example.instantmessaging.models.AuthRequestsDTO;
 import com.example.instantmessaging.models.AuthResponse;
+import com.example.instantmessaging.models.RegisterRequestDTO;
 import com.example.instantmessaging.services.RabbitMQ.RabbitMQSender;
 import com.example.instantmessaging.services.dataservice.UserDataService;
 import com.example.instantmessaging.utils.JwtTokenUtil;
@@ -39,6 +43,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @Tag(name = "User Management Endpoints", description = "All the endpoints needed to perform crud operations")
 public class UserController {
 
+  private static Logger logger = LogManager.getLogger(UserController.class.toString());
+
   @Autowired
   private RabbitMQSender rabbitMQSender;
 
@@ -52,9 +58,10 @@ public class UserController {
   private JwtTokenUtil jwtTokenUtil;
 
   @PostMapping("/register")
-  public ResponseEntity<User> registerUser(@RequestBody User user) throws RuntimeException {
+  public ResponseEntity<User> registerUser(@RequestBody RegisterRequestDTO user) throws RuntimeException {
 
     userDataService.isUserInDataBase(user.getUsername(), user.getEmail());
+    logger.trace(user);
     User newUser = userDataService.createNewUserDate(user);
 
     rabbitMQSender.send(newUser);
@@ -100,6 +107,7 @@ public class UserController {
   }
 
   @SecurityRequirement(name = "bearerAuth")
+  @PreAuthorize("hasAuthority('USER')")
   @PutMapping("/{id}")
   public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatUser) {
     User savedUser = userDataService.updateUser(id, updatUser);
@@ -107,17 +115,20 @@ public class UserController {
   }
 
   @SecurityRequirement(name = "bearerAuth")
+  @PreAuthorize("hasAuthority('USER')")
   @GetMapping
   public ResponseEntity<Iterable<User>> getAllUsers() {
     return ResponseEntity.ok(userDataService.getAllUsers());
   }
 
   @SecurityRequirement(name = "bearerAuth")
+  @PreAuthorize("hasAuthority('USER')")
   @GetMapping("/user/{id}")
   public ResponseEntity<User> getUserById(@PathVariable Long id) {
     return ResponseEntity.ok(userDataService.getUserById(id));
   }
 
+  @PreAuthorize("hasAuthority('USER')")
   @SecurityRequirement(name = "bearerAuth")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
